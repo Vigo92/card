@@ -10,7 +10,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class CardDetailResponse {
+public class CardDetailResponseBase {
 
     private String scheme;
 
