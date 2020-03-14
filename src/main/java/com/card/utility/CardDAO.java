@@ -1,5 +1,6 @@
 package com.card.utility;
 
+import com.card.model.CardReportBase;
 import com.card.model.CardResponse;
 import reactor.core.publisher.Mono;
 
@@ -11,4 +12,6 @@ public interface CardDAO {
 //    Mono<CardResponse> getDetails(String cardNo);
 
     CardResponse getDetails(String cardNo);
+
+    CardReportBase getDetails(Integer start, Integer limit);
 }
