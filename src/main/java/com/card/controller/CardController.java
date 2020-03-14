@@ -1,9 +1,11 @@
 package com.card.controller;
 
+import com.card.channels.KafkaProducer;
 import com.card.model.CardReportBase;
 import com.card.model.CardResponse;
 import com.card.services.CardService;
 import com.card.utility.CardDAO;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,13 +19,16 @@ import reactor.core.publisher.Mono;
  */
 
 @RestController
+@RequiredArgsConstructor
 public class CardController {
 
-    private CardDAO cardDAO;
+    private final CardDAO cardDAO;
 
-    public CardController(CardDAO cardDAO) {
-        this.cardDAO = cardDAO;
-    }
+    private final KafkaProducer kafkaProducer;
+
+//    public CardController(CardDAO cardDAO) {
+//        this.cardDAO = cardDAO;
+//    }
 
 //    @GetMapping("/card-scheme/verify/{cardNo}")
 //    public Mono<CardResponse> getCardDetails(@PathVariable("cardNo") String cardNo){
@@ -36,9 +41,11 @@ public class CardController {
     @GetMapping("/card-scheme/verify/{cardNo}")
     public ResponseEntity<CardResponse> getCardDetails(@PathVariable("cardNo") String cardNo){
 
-        CardResponse cardResponseMono = cardDAO.getDetails(cardNo);
+//        CardResponse cardResponseMono = kafkaProducer.getCardDetails(cardNo);
+        kafkaProducer.getCardDetails(cardNo);
 
-        return new ResponseEntity(cardResponseMono, HttpStatus.OK);
+//        return new ResponseEntity(cardResponseMono, HttpStatus.OK);
+        return new ResponseEntity("", HttpStatus.OK);
     }
 
     @GetMapping("/card-scheme/stats")
