@@ -6,6 +6,7 @@ import com.card.model.CardReportBase;
 import com.card.model.CardResponse;
 import com.card.repository.CardDetailsRepository;
 import com.card.services.CardService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,7 @@ import java.util.Optional;
  */
 
 @Component
+@Slf4j
 public class CardDAOImpl implements CardDAO {
 
     private CardService cardService;
@@ -34,7 +36,7 @@ public class CardDAOImpl implements CardDAO {
 
     @Override
     public CardResponse getCardDetails(String cardNo) {
-
+        log.info("Processing request for {}", cardNo);
         Optional<CardDetails> cardDetailsOptional = cardDetailsRepository.findTopByCardNumber(cardNo);
 
         CardDetails cardDetails;
@@ -45,22 +47,30 @@ public class CardDAOImpl implements CardDAO {
 
         if (cardDetailsOptional.isPresent()) {
 
+            log.info("{} already exists, increamenting...", cardNo);
             cardDetails = cardDetailsOptional.get();
 
             cardDetails.setTotalHits(cardDetails.getTotalHits() + 1);
 
             cardDetailsRepository.save(cardDetails);
+            log.info("{} successfully increamentied!", cardNo);
 
             payload = new CardDetailResponsePayload(cardDetails.getScheme(), cardDetails.getType(), cardDetails.getBank());
             cardResponse.setSuccess(true);
         } else {
+
+            log.info("New card {} recieved, checking 3party for details", cardNo);
             payload = cardService.getDetails(cardNo);
-            if (payload.getType().equals("") && payload.getScheme().equals("")){
+            if (payload.getType().equals("") && payload.getScheme().equals("") && payload.getBank().equals("")) {
+                log.info("No response for card {} ", cardNo);
                 cardResponse.setSuccess(false);
-            }else {
+            } else {
+                log.info("Card {} exists in 3rd party, saving it for further nesds...", cardNo);
                 cardResponse.setSuccess(true);
                 cardDetails = new CardDetails(cardNo, payload.getScheme(), payload.getType(), payload.getBank());
+                log.info("No response fore card {} ", cardNo);
                 cardDetailsRepository.save(cardDetails);
+                log.info("{} successfully saved!", cardNo);
             }
         }
 
@@ -72,6 +82,7 @@ public class CardDAOImpl implements CardDAO {
     @Override
     public CardReportBase getDetails(Integer start, Integer limit) {
 
+        log.info("retrieving from {} to {}", start, limit);
         Pageable pageable = PageRequest.of(start - 1, limit);
         Page<CardDetails> validCards = cardDetailsRepository.findAll(pageable);
         Map<String, Integer> payload = new HashMap<>();
