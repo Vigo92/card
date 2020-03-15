@@ -1,9 +1,10 @@
 package com.card.utility;
 
+import com.card.model.CardDetailResponsePayload;
+import com.card.model.CardDetails;
 import com.card.model.CardReportBase;
 import com.card.model.CardResponse;
-import com.card.model.ValidCard;
-import com.card.repository.ValidCardRepository;
+import com.card.repository.CardDetailsRepository;
 import com.card.services.CardService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,61 +24,55 @@ public class CardDAOImpl implements CardDAO {
 
     private CardService cardService;
 
-    private ValidCardRepository cardRepository;
+    private CardDetailsRepository cardDetailsRepository;
 
-    public CardDAOImpl(CardService cardService, ValidCardRepository cardRepository) {
+
+    public CardDAOImpl(CardService cardService, CardDetailsRepository cardDetailsRepository) {
         this.cardService = cardService;
-        this.cardRepository = cardRepository;
+        this.cardDetailsRepository = cardDetailsRepository;
     }
 
-//    @Override
-//    public Mono<CardResponse> getDetails(String cardNo) {
-//
-//        Mono<CardResponse> cardResponseMono = cardService.getDetails(cardNo);
-//        cardResponseMono.subscribe(res -> {
-//
-//        });
-//cardResponseMono.subscribe(res -> {
-//    System.out.println("say ");
-//    System.out.println(res);
-//});
-//        return cardResponseMono;
-//    }
-
     @Override
-    public CardResponse getDetails(String cardNo) {
+    public CardResponse getCardDetails(String cardNo) {
 
-        CardResponse cardResponseMono = cardService.getDetails(cardNo);
+        Optional<CardDetails> cardDetailsOptional = cardDetailsRepository.findTopByCardNumber(cardNo);
 
-        if (cardResponseMono != null) {
-            Optional<ValidCard> optional = cardRepository.findOneByCardNo(cardNo);
-            if (optional.isPresent()) {
-                ValidCard validCards = optional.get();
-                validCards.setTotalHits(validCards.getTotalHits() + 1);
-                cardRepository.save(validCards);
-            } else {
-                ValidCard validCard = new ValidCard(cardNo, 1);
-                cardRepository.save(validCard);
-            }
+        CardDetails cardDetails;
+
+        CardResponse cardResponse = new CardResponse();
+
+        CardDetailResponsePayload payload;
+
+        if (cardDetailsOptional.isPresent()) {
+
+            cardDetails = cardDetailsOptional.get();
+
+            cardDetails.setTotalHits(cardDetails.getTotalHits() + 1);
+
+            cardDetailsRepository.save(cardDetails);
+
+            payload = new CardDetailResponsePayload(cardDetails.getScheme(), cardDetails.getType(), cardDetails.getBank());
+
+        } else {
+            payload = cardService.getDetails(cardNo);
+            cardDetails = new CardDetails(cardNo, payload.getScheme(), payload.getType(), payload.getBank());
+            cardDetailsRepository.save(cardDetails);
         }
-//        cardResponseMono.subscribe(res -> {
-//
-//        });
-//        cardResponseMono.subscribe(res -> {
-//            System.out.println("say ");
-//            System.out.println(res);
-//        });
-        return cardResponseMono;
+
+        cardResponse.setSuccess(true);
+        cardResponse.setPayload(payload);
+
+        return cardResponse;
     }
 
     @Override
     public CardReportBase getDetails(Integer start, Integer limit) {
 
         Pageable pageable = PageRequest.of(start - 1, limit);
-        Page<ValidCard> validCards = cardRepository.findAll(pageable);
+        Page<CardDetails> validCards = cardDetailsRepository.findAll(pageable);
         Map<String, Integer> payload = new HashMap<>();
-        for (ValidCard validCard : validCards.getContent()) {
-            payload.put(validCard.getCardNo(), validCard.getTotalHits());
+        for (CardDetails cardDetails : validCards.getContent()) {
+            payload.put(cardDetails.getCardNumber(), cardDetails.getTotalHits());
         }
 
         CardReportBase cardReportBase = new CardReportBase(true, start, limit, Long.valueOf(validCards.getTotalElements()).intValue(), payload);

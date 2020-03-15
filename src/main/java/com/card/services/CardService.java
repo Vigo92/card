@@ -1,5 +1,6 @@
 package com.card.services;
 
+import com.card.model.CardDetailResponsePayload;
 import com.card.model.CardResponse;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -9,7 +10,5 @@ import reactor.core.publisher.Mono;
  */
 public interface CardService {
 
-    //Mono<CardResponse> getDetails(String cardNo);
-
-    CardResponse getDetails(String cardNo);
+    CardDetailResponsePayload getDetails(String cardNo);
 }

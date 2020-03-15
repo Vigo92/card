@@ -10,9 +10,10 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class CardResponse {
+public class CardResponse extends ResponseBase{
 
-    private Boolean success;
+    CardDetailResponsePayload payload = new CardDetailResponsePayload();
 
-    CardDetailResponseBase payload = new CardDetailResponseBase();
+    public CardResponse() {
+    }
 }

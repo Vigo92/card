@@ -11,7 +11,7 @@ public interface CardDAO {
 
 //    Mono<CardResponse> getDetails(String cardNo);
 
-    CardResponse getDetails(String cardNo);
+    CardResponse getCardDetails(String cardNo);
 
     CardReportBase getDetails(Integer start, Integer limit);
 }
