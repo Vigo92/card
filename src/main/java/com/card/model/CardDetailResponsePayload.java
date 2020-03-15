@@ -12,11 +12,11 @@ import lombok.ToString;
 @ToString
 public class CardDetailResponsePayload {
 
-    private String scheme;
+    private String scheme = "";
 
-    private String type;
+    private String type = "";
 
-    private String bank;
+    private String bank = "";
 
     public CardDetailResponsePayload() {
     }

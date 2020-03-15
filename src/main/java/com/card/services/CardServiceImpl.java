@@ -1,9 +1,9 @@
 package com.card.services;
 
 import com.card.model.CardDetailResponsePayload;
-import com.card.model.CardResponse;
 import com.card.services.util.BinListCardResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -28,21 +28,27 @@ public class CardServiceImpl implements CardService {
     @Override
     public CardDetailResponsePayload getDetails(String cardNo) {
 
-        UriComponentsBuilder parameters = UriComponentsBuilder.fromHttpUrl(cardEndpoint + "/" + cardNo);
-        ResponseEntity<BinListCardResponse> cardMono = restTemplate.getForEntity(parameters.toUriString(), BinListCardResponse.class);
+        try {
 
-        if (!(cardMono.hasBody())) {
-            return new CardDetailResponsePayload();
+            UriComponentsBuilder parameters = UriComponentsBuilder.fromHttpUrl(cardEndpoint + "/" + cardNo);
+            ResponseEntity<BinListCardResponse> cardMono = restTemplate.getForEntity(parameters.toUriString(), BinListCardResponse.class);
+
+            if (cardMono.getStatusCode() != HttpStatus.OK || !(cardMono.hasBody())) {
+                return new CardDetailResponsePayload();
+            }
+
+            BinListCardResponse response = cardMono.getBody();
+
+            CardDetailResponsePayload payload = new CardDetailResponsePayload(
+                    response.getScheme(),
+                    response.getType(),
+                    response.getBank().getName()
+            );
+
+            return payload;
+        }catch (Exception e){
+            e.printStackTrace();
         }
-
-        BinListCardResponse response = cardMono.getBody();
-
-        CardDetailResponsePayload payload = new CardDetailResponsePayload(
-                response.getScheme(),
-                response.getType(),
-                response.getBank().getName()
-        );
-
-        return payload;
+        return new CardDetailResponsePayload();
     }
 }

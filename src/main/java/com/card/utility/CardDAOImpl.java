@@ -52,14 +52,18 @@ public class CardDAOImpl implements CardDAO {
             cardDetailsRepository.save(cardDetails);
 
             payload = new CardDetailResponsePayload(cardDetails.getScheme(), cardDetails.getType(), cardDetails.getBank());
-
+            cardResponse.setSuccess(true);
         } else {
             payload = cardService.getDetails(cardNo);
-            cardDetails = new CardDetails(cardNo, payload.getScheme(), payload.getType(), payload.getBank());
-            cardDetailsRepository.save(cardDetails);
+            if (payload.getType().equals("") && payload.getScheme().equals("")){
+                cardResponse.setSuccess(false);
+            }else {
+                cardResponse.setSuccess(true);
+                cardDetails = new CardDetails(cardNo, payload.getScheme(), payload.getType(), payload.getBank());
+                cardDetailsRepository.save(cardDetails);
+            }
         }
 
-        cardResponse.setSuccess(true);
         cardResponse.setPayload(payload);
 
         return cardResponse;
